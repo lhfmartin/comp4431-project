@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Image Processor</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <style>
+    .container { width: 1000px; margin-top: 60px }
+    .navbar-inverse .navbar-brand { color: white }
+	.slider-vertical { -webkit-appearance: slider-vertical; height: 120px; }
+    canvas { border: 1px solid black; }
+    </style>
+    <script>
+      function adaptive(str){
+        if(str == "adaptive"){
+          document.getElementById("kuwahara-slider").style.visibility = "hidden";
+        } else{
+          document.getElementById("kuwahara-slider").style.visibility = "visible";
+        }
+      }
+    </script>
+</head>
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="navbar-header">
+            <span class="navbar-brand">Image Processor</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                <h4>Input Image</h4>
+                <canvas id="input" width="480" height="360"></canvas>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                        <div class="form-inline">
+                            <div class="form-group">
+                                <label for="input-image">Image:</label>
+                                <select class="form-control" id="input-image">
+                                    <option value="hkust.png">HKUST</option>
+                                    <option value="batman.png">Batman</option>
+                                    <option value="superman.png">Superman</option>
+                                    <option value="cap.png">Captain America</option>
+                                    <option value="thanos.png">Thanos</option>
+                                    <option value="trooper.png">Stormtroopers</option>
+                                    <option value="grayscale.png">Grayscale Test</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                <h4>Output Image</h4>
+                <canvas id="output" width="480" height="360"></canvas>
+                <div class="row">
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <a class="btn btn-large btn-info" id="output-update"><i class="glyphicon glyphicon-refresh"></i> Update Output</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                &nbsp;
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs" role="tablist">
+
+                    <!-- Base layer - stage 1 -->
+                    <li class="dropdown active" id="base-stage1-dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Base Layer - Stage 1<br><span class="title"><i>Do Nothing</i></span>
+                        <span class="caret"></span></a>
+                        <ul class="dropdown-menu" id="base-stage1-dropdown-menu">
+                            <li role="presentation" class="active"><a href="#no-op" role="tab" data-toggle="tab"><i>Do Nothing</i></a></li>
+                            <li role="presentation"><a href="#grayscale" role="tab" data-toggle="tab">GrayScale</a></li>
+                            <li role="presentation"><a href="#posterization" role="tab" data-toggle="tab">Posterization</a></li>
+                            <li role="presentation"><a href="#threshold" role="tab" data-toggle="tab">Threshold</a></li>
+                            <li role="presentation"><a href="#comic-color" role="tab" data-toggle="tab">Comic Colour</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Base layer - stage 2 -->
+                    <li class="dropdown" id="base-stage2-dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Base Layer - Stage 2<br><span class="title"><i>Do Nothing</i></span>
+                        <span class="caret"></span></a>
+                        <ul class="dropdown-menu" id="base-stage2-dropdown-menu">
+                            <li role="presentation"><a href="#no-op" role="tab" data-toggle="tab"><i>Do Nothing</i></a></li>
+                            <li role="presentation"><a href="#blur" role="tab" data-toggle="tab">Blur</a></li>
+                            <li role="presentation"><a href="#kuwahara" role="tab" data-toggle="tab">Kuwahara Filter</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Shade layer -->
+                    <li class="dropdown" id="shade-dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Shade Layer<br><span class="title"><i>Do Nothing</i></span>
+                        <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li role="presentation"><a href="#no-op" role="tab" data-toggle="tab"><i>Do Nothing</i></a></li>
+                            <li role="presentation"><a href="#dither" role="tab" data-toggle="tab">Ordered Dithering</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Outline layer -->
+                    <li class="dropdown" id="outline-dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Outline Layer<br><span class="title"><i>Do Nothing</i></span>
+                        <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li role="presentation"><a href="#no-op" role="tab" data-toggle="tab"><i>Do Nothing</i></a></li>
+                            <li role="presentation"><a href="#sobel" role="tab" data-toggle="tab">Sobel Edge</a></li>
+                        </ul>
+                    </li>
+
+                </ul>
+
+                <!-- Tab panes -->
+                <div class="tab-content">
+
+                    <!-- No op -->
+                    <div role="tabpanel" class="tab-pane active" id="no-op">
+                        <h5>Parameters</h5>
+                        <p>No parameters avaliable</p>
+                        <br>
+                    </div>
+
+                    <!-- Grayscale -->
+                    <div role="tabpanel" class="tab-pane" id="grayscale">
+                        <h5>Parameters</h5>
+                        <p>No parameters avaliable</p>
+                        <br>
+                    </div>
+
+                    <!-- Posterization -->
+                    <div role="tabpanel" class="tab-pane" id="posterization">
+                        <h5>Parameters</h5>
+                        <div class="row">
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                                <label for="posterization-red-bits">Red bits (to keep):</label>
+                                <div class="form-inline">
+                                    <div class="form-group">
+                                        <div class="input-group">
+                                            <input class="form-control-range" id="posterization-red-bits" type="range" value="2" min="1" max="8" step="1"
+                                             onchange="$(this).parent().next().html(parseInt($(this).val()))">
+
+                                        </div>
+                                        <span>2</span> bits
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                                <label for="posterization-green-bits">Green bits (to keep):</label>
+                                <div class="form-inline">
+                                    <div class="form-group">
+                                        <div class="input-group">
+                                            <input class="form-control-range" id="posterization-green-bits" type="range" value="2" min="1" max="8" step="1"
+                                             onchange="$(this).parent().next().html(parseInt($(this).val()))">
+                                        </div>
+                                        <span>2</span> bits
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                                <label for="posterization-blue-bits">Blue bits (to keep):</label>
+                                <div class="form-inline">
+                                    <div class="form-group">
+                                        <div class="input-group">
+                                            <input class="form-control-range" id="posterization-blue-bits" type="range" value="2" min="1" max="8" step="1"
+                                             onchange="$(this).parent().next().html(parseInt($(this).val()))">
+                                        </div>
+                                        <span>2</span> bits
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                    </div>
+
+                    <!-- Threshold -->
+                    <div role="tabpanel" class="tab-pane" id="threshold">
+                        <h5>Parameters</h5>
+                        <div class="row">
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                                <label for="threshold-value">Threshold value:</label>
+                                <div class="form-inline">
+                                    <div class="form-group">
+                                        <input class="form-control" id="threshold-value" type="number" value="128" min="1" max="255" step="1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                    </div>
+
+                    <!-- Comic colour -->
+                    <div role="tabpanel" class="tab-pane" id="comic-color">
+                        <h5>Parameters</h5>
+                        <div class="row">
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                                <label for="comic-color-saturation">Saturation multiplier:</label>
+                                <div class="form-inline">
+                                    <div class="form-group">
+                                        <div class="input-group">
+                                            <input class="form-control-range" id="comic-color-saturation" type="range" value="2" min="1" max="8" step="1"
+                                             onchange="$(this).parent().next().html('&times;' + parseInt($(this).val()))">
+                                        </div>
+                                        <span>&times;2</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                    </div>
+
+                    <!-- Blur -->
+                    <div role="tabpanel" class="tab-pane" id="blur">
+                        <h5>Parameters</h5>
+                        <div class="row">
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                                <label for="blur-kernel-size">Kernel size:</label>
+                                <div class="form-inline">
+                                    <div class="form-group">
+                                        <div class="input-group">
+                                            <input class="form-control-range" id="blur-kernel-size" type="range" value="3" min="3" max="9" step="2"
+                                             onchange="$(this).parent().next().html($(this).val() + '&times;' + $(this).val())">
+                                        </div>
+                                        <span>3&times;3</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                    </div>
+
+                    <!-- Kuwahara filter -->
+                    <div role="tabpanel" class="tab-pane" id="kuwahara">
+                        <h5>Parameters</h5>
+                        <div class="row">
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                                <label for="kuwahara-filter-type">Filter type:</label>
+                                <select class="form-control" id="kuwahara-filter-type" onchange="adaptive(this.value)">
+                                    <option value="original">Original</option>
+                                    <option value="adaptive">Adaptive</option>
+                                    <option value="hexagon">Hexagon (todo)</option>
+                                    <option value="circle">Circle</option>
+                                    <option value="sector">Circular Sector (todo)</option>
+                                </select>
+                            </div>
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3" id="kuwahara-slider">
+                                <label for="kuwahara-filter-size">Filter size:</label>
+                                <div class="form-inline">
+                                    <div class="form-group">
+                                        <div class="input-group">
+                                            <input class="form-control-range" id="kuwahara-filter-size" type="range" value="5" min="5" max="13" step="4"
+                                             onchange="$(this).parent().next().html($(this).val() + '&times;' + $(this).val())">
+                                        </div>
+                                        <span>5&times;5</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                    </div>
+
+                    <!-- Ordered dithering -->
+                    <div role="tabpanel" class="tab-pane" id="dither">
+                        <h5>Parameters</h5>
+                        <div class="row">
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                                <label for="dither-matrix-type">Matrix type:</label>
+                                <select class="form-control" id="dither-matrix-type">
+                                    <option value="bayer2">Bayer's 2&times;2 Matrix</option>
+                                    <option value="bayer4">Bayer's 4&times;4 Matrix</option>
+                                    <option value="line">Diagonal Lines</option>
+                                    <option value="diamond">Diamonds</option>
+                                </select>
+                            </div>
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                                <div class="form-inline">
+                                    <label for="dither-transparent">White shown as transparent:</label>
+                                    <div class="form-inline">
+                                        <div class="form-group">
+                                            <input class="form-control" id="dither-transparent" type="checkbox">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                    </div>
+
+                    <!-- Sobel edge -->
+                    <div role="tabpanel" class="tab-pane" id="sobel">
+                        <h5>Parameters</h5>
+                        <div class="row">
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                                <label for="sobel-threshold">Threshold value:</label>
+                                <div class="form-inline">
+                                    <div class="form-group">
+                                        <input class="form-control" id="sobel-threshold" type="number" value="128" min="1" max="255" step="1">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                                <div class="form-inline">
+                                    <label for="sobel-blur">Blur before edge detection:</label>
+                                    <div class="form-inline">
+                                        <div class="form-group">
+                                            <input class="form-control" id="sobel-blur" type="checkbox">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                                <label for="sobel-blur-kernel-size">Blur kernel size:</label>
+                                <div class="form-inline">
+                                    <div class="form-group">
+                                        <div class="input-group">
+                                            <input class="form-control-range" id="sobel-blur-kernel-size" type="range" value="3" min="3" max="9" step="2"
+                                             onchange="$(this).parent().next().html($(this).val() + '&times;' + $(this).val())">
+                                        </div>
+                                        <span>3&times;3</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            &nbsp;
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                                <div class="form-inline">
+                                    <label for="sobel-flip">Flip edge colour:</label>
+                                    <div class="form-inline">
+                                        <div class="form-group">
+                                            <input class="form-control" id="sobel-flip" type="checkbox">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+                                <div class="form-inline">
+                                    <label for="sobel-transparent">Non-edge shown as transparent:</label>
+                                    <div class="form-inline">
+                                        <div class="form-group">
+                                            <input class="form-control" id="sobel-transparent" type="checkbox">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
+    <script src="js/imageproc.js"></script>
+    <script src="js/base.js"></script>
+    <script src="js/comic.js"></script>
+    <script src="js/kuwahara.js"></script>
+    <script src="js/dither.js"></script>
+    <script src="js/outline.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+    /*
+     * The image processing operations are set up for the different layers.
+     * Operations are applied from the base layer to the outline layer. These
+     * layers are combined appropriately when required.
+     */
+    imageproc.operation = function(inputImage, outputImage) {
+
+        /*
+         * Apply the base layer (stage 1) operations
+         */
+
+        /* Create a buffer for temporary storage */
+        var baseLayer1 = imageproc.createBuffer(outputImage);
+
+        switch (currentBaseLayerStage1Op) {
+            /* Copy the image */
+            case "no-op":
+                imageproc.copyImageData(inputImage, baseLayer1);
+                break;
+
+            /* Apply grayscale */
+            case "grayscale":
+                imageproc.grayscale(inputImage, baseLayer1);
+                break;
+
+            /* Apply posterization */
+            case "posterization":
+                imageproc.posterization(inputImage, baseLayer1,
+                                        $("#posterization-red-bits").val(),
+                                        $("#posterization-green-bits").val(),
+                                        $("#posterization-blue-bits").val());
+                break;
+
+            /* Apply threshold */
+            case "threshold":
+                imageproc.threshold(inputImage, baseLayer1,
+                                    $("#threshold-value").val());
+                break;
+
+            /* Apply comic colour */
+            case "comic-color":
+                imageproc.comicColor(inputImage, baseLayer1,
+                                    $("#comic-color-saturation").val());
+                break;
+        }
+
+        /*
+         * Apply the base layer (stage 2) operations
+         */
+
+        /* Create a buffer for temporary storage */
+        var baseLayer2 = imageproc.createBuffer(outputImage);
+
+        switch (currentBaseLayerStage2Op) {
+            /* Copy the image */
+            case "no-op":
+                imageproc.copyImageData(baseLayer1, baseLayer2);
+                break;
+
+            /* Apply blur */
+            case "blur":
+                imageproc.blur(baseLayer1, baseLayer2,
+                               $("#blur-kernel-size").val());
+                break;
+
+            /* Apply kuwahara */
+            case "kuwahara":
+                imageproc.kuwahara(baseLayer1, baseLayer2,
+                                   $("#kuwahara-filter-size").val(), $("#kuwahara-filter-type").val());
+                break;
+        }
+
+        /*
+         * Apply the shade layer operation
+         */
+
+        /* Create a buffer for temporary storage */
+        var shadeLayer = imageproc.createBuffer(outputImage);
+
+        switch (currentShadeLayerOp) {
+            /* Copy the image */
+            case "no-op":
+                imageproc.copyImageData(baseLayer2, shadeLayer);
+                break;
+
+            /* Apply dither */
+            case "dither":
+                imageproc.dither(inputImage, shadeLayer,
+                                 $("#dither-matrix-type").val());
+
+                /* Use transparency for white pixels */
+                if ($("#dither-transparent").prop("checked")) {
+                    /* Show base layer */
+                    for (var i = 0; i < shadeLayer.data.length; i+=4) {
+                        if (shadeLayer.data[i] == 255) {
+                            shadeLayer.data[i]     = baseLayer2.data[i];
+                            shadeLayer.data[i + 1] = baseLayer2.data[i + 1];
+                            shadeLayer.data[i + 2] = baseLayer2.data[i + 2];
+                        }
+                    }
+                }
+                break;
+        }
+
+        /*
+         * Apply the outline layer operation
+         */
+
+        /* Create a buffer for temporary storage */
+        var outlineLayer = imageproc.createBuffer(outputImage);
+
+        switch (currentOutlineLayerOp) {
+            /* Copy the image */
+            case "no-op":
+                imageproc.copyImageData(shadeLayer, outlineLayer);
+                break;
+
+            /* Apply sobel edge detection */
+            case "sobel":
+                /**
+                 * TODO: You need to preprocess the image for the Sobel
+                 * edge detection
+                 */
+
+                /* 1. The Sobel edge will be applied to the grayscale image */
+                var grayscale = imageproc.createBuffer(outputImage);
+                imageproc.grayscale(baseLayer2, grayscale);
+                //imageproc.threshold(shadeLayer, outlineLayer, $("#sobel-threshold").val())
+
+                /* 2. The image can be blurred before applying the Sobel edge
+                   detection (read the value of the sobel-blur checkbox) */
+                if ($("#sobel-blur").prop("checked")) {
+                  var blur = imageproc.createBuffer(outputImage);
+                  imageproc.blur(grayscale, blur, $("#sobel-blur-kernel-size").val());
+                  imageproc.sobelEdge(blur, outlineLayer,
+                                      $("#sobel-threshold").val());
+                } else{
+                  imageproc.sobelEdge(grayscale, outlineLayer,
+                                      $("#sobel-threshold").val());
+                }
+                /**
+                 * TODO: You need to postprocess the edge output to switch
+                 * between black or white edges
+                 */
+
+                /* Flip the edge values */
+                if($("#sobel-flip").prop("checked")){
+                  for (var i = 0; i < outlineLayer.data.length; i += 4) {
+                      outlineLayer.data[i]     = 255 - outlineLayer.data[i];
+                      outlineLayer.data[i + 1] = 255 - outlineLayer.data[i + 1];
+                      outlineLayer.data[i + 2] = 255 - outlineLayer.data[i + 2];
+                  }
+                }
+
+                /**
+                 * In the following code, the non-edge pixels become
+                 * transparent, you would need to change this if you
+                 * have flipped the edge values
+                 */
+
+                /* Use transparency for non-edge pixels */
+                if ($("#sobel-transparent").prop("checked")) {
+                    /* Show base layer */
+                    var none = 0;
+                    if($("#sobel-flip").prop("checked")){
+                      none = 255;
+                    }
+                    for (var i = 0; i < outlineLayer.data.length; i+=4) {
+                        if (outlineLayer.data[i] == none) {
+                            outlineLayer.data[i]     = shadeLayer.data[i];
+                            outlineLayer.data[i + 1] = shadeLayer.data[i + 1];
+                            outlineLayer.data[i + 2] = shadeLayer.data[i + 2];
+                        }
+                    }
+                }
+                break;
+        }
+
+        imageproc.copyImageData(outlineLayer, outputImage);
+    }
+    </script>
+</body>
+</html>
