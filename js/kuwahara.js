@@ -190,185 +190,95 @@
           return data.filter(e => e.variance == minV)[0];
         }
 
-        function circleRegionStat(x, y, q){
-          /* Find the mean colour and brightness */
-          var meanR = 0, meanG = 0, meanB = 0;
-          var meanValue = 0;
-          var count = 0;
-          switch (q){
-          case 1:
-            for (var j = -1 - order; j <= 1 + order; j++) {
-                for (var i = -1 - order; i <= 1 + order; i++) {
-                  var pixel = imageproc.getPixel(inputData, x + i, y + j);
+        var sectorSize = Number($("#kuwahara-sector-size").val());
 
-                  /* For the mean colour */
-                  meanR += pixel.r;
-                  meanG += pixel.g;
-                  meanB += pixel.b;
+        function checkPointSector(x, y, cx, cy, sectorAngle) {
+            var location = 1;
+            var locationArray = [];
+            var angle = (Math.atan2(y - cy, x - cx) * (180.0 / Math.PI) + 360) % 360;
 
-                  /* For the mean brightness */
-                  meanValue += (pixel.r + pixel.g + pixel.b) / 3;
-                  count++;
-                  if(i == j){
-                    break;
-                  }
+            for (var i = 0; i <= 360 - sectorAngle; i += sectorAngle) {
+                if (angle >= i && angle <= i + sectorAngle) {
+                    locationArray.push(location);
                 }
+
+                location++;
             }
-            break;
-          case 2:
-            for (var j = -1 - order; j <= 1 + order; j++) {
-              var start = false;
-                for (var i = -1 - order; i <= 1 + order; i++) {
-                  if(i == -j){
-                    start = true;
-                  }
-                  if(start){
-                    var pixel = imageproc.getPixel(inputData, x + i, y + j);
 
-                    /* For the mean colour */
-                    meanR += pixel.r;
-                    meanG += pixel.g;
-                    meanB += pixel.b;
+            return locationArray;
+        }
 
-                    /* For the mean brightness */
-                    meanValue += (pixel.r + pixel.g + pixel.b) / 3;
-                    count++;
-                  }
-                }
+        function circleFilterRegionStat(x, y) {
+            var sSize = parseInt(sectorSize);
+            var boundary = Math.trunc(size / 2);
+            var sectorArray = [];
+            var result = [];
+            for (var i = 0; i < sSize; i++) {
+                sectorArray[i] = [];
             }
-            break;
-          case 3:
-            for (var j = -1 - order; j <= 1 + order; j++) {
-              var start = false;
-                for (var i = -1 - order; i <= 1 + order; i++) {
-                  if(i == j){
-                    start = true;
-                  }
-                  if(start){
-                    var pixel = imageproc.getPixel(inputData, x + i, y + j);
 
-                    /* For the mean colour */
-                    meanR += pixel.r;
-                    meanG += pixel.g;
-                    meanB += pixel.b;
+            // Loop through each point and check if it is valid and which sector is it
+            for (var i = x - boundary; i <= x + boundary; i++) {
+                for (var j = y - boundary; j <= y + boundary; j++) {
+                    var distance = Math.hypot(i - x, j - y);
 
-                    /* For the mean brightness */
-                    meanValue += (pixel.r + pixel.g + pixel.b) / 3;
-                    count++;
-                  }
-                }
-            }
-            break;
-          case 4:
-            for (var j = -1 - order; j <= 1 + order; j++) {
-                for (var i = -1 - order; i <= 1 + order; i++) {
-                    var pixel = imageproc.getPixel(inputData, x + i, y + j);
+                    if (distance > size / 2) {
+                        continue;
+                    }
 
-                    /* For the mean colour */
-                    meanR += pixel.r;
-                    meanG += pixel.g;
-                    meanB += pixel.b;
-
-                    /* For the mean brightness */
-                    meanValue += (pixel.r + pixel.g + pixel.b) / 3;
-                    count++;
-                    if(i == -j){
-                      break;
+                    var pixel = imageproc.getPixel(inputData, i, j);
+                    var locationArray = checkPointSector(i, j, x, y, 360 / sSize);
+                    for (var k = 0; k < locationArray.length; k++) {
+                        sectorArray[locationArray[k] - 1].push(pixel);
                     }
                 }
             }
-            break;
-          }
-          meanR /= count;
-          meanG /= count;
-          meanB /= count;
-          meanValue /= count;
 
-          /* Find the variance */
-          var variance = 0;
+            for (var i = 0; i < sSize; i++) {
+                var meanR = 0, meanG = 0, meanB = 0;
+                var divisor = sectorArray[i].length;
+                var meanValue = 0;
+                var variance = 0;
 
-          switch (q){
-          case 1:
-            for (var j = -1 - order; j <= 1 + order; j++) {
-              var end = false;
-                for (var i = -1 - order; i <= 1 + order; i++) {
-                  var pixel = imageproc.getPixel(inputData, x + i, y + j);
-                  var value = (pixel.r + pixel.g + pixel.b) / 3;
+                for (var j = 0; j < sectorArray[i].length; j++) {
+                    /* For the mean colour */
+                    var pixel = sectorArray[i][j];
+                    meanR += pixel.r;
+                    meanG += pixel.g;
+                    meanB += pixel.b;
 
-                  variance += Math.pow(value - meanValue, 2);
-
-                  if(i == j){
-                    break;
-                  }
+                    /* For the mean brightness */
+                    meanValue += (pixel.r + pixel.g + pixel.b) / 3;
                 }
-            }
-            break;
-          case 2:
-            for (var j = -1 - order; j <= 1 + order; j++) {
-              var start = false;
-                for (var i = -1 - order; i <= 1 + order; i++) {
-                  if(i == -j){
-                    start = true;
-                  }
-                  if(start){
-                    var pixel = imageproc.getPixel(inputData, x + i, y + j);
 
+                meanR /= divisor;
+                meanG /= divisor;
+                meanB /= divisor;
+                meanValue /= divisor;
+
+                for (var j = 0; j < sectorArray[i].length; j++) {
+                    var pixel = sectorArray[i][j];
                     var value = (pixel.r + pixel.g + pixel.b) / 3;
 
                     variance += Math.pow(value - meanValue, 2);
 
-                  }
+                    variance /= divisor;
                 }
+
+                result[result.length] = {
+                    mean: {r: meanR, g: meanG, b: meanB},
+                    variance: variance
+                };
             }
-            break;
-          case 3:
-            for (var j = -1 - order; j <= 1 + order; j++) {
-              var start = false;
-                for (var i = -1 - order; i <= 1 + order; i++) {
-                  if(i == j){
-                    start = true;
-                  }
-                  if(start){
-                    var pixel = imageproc.getPixel(inputData, x + i, y + j);
 
-                    var value = (pixel.r + pixel.g + pixel.b) / 3;
-
-                    variance += Math.pow(value - meanValue, 2);
-
-                  }
-                }
-            }
-            break;
-          case 4:
-            for (var j = -1 - order; j <= 1 + order; j++) {
-                for (var i = -1 - order; i <= 1 + order; i++) {
-                    var pixel = imageproc.getPixel(inputData, x + i, y + j);
-
-                    var value = (pixel.r + pixel.g + pixel.b) / 3;
-
-                    variance += Math.pow(value - meanValue, 2);
-
-
-                    if(i == -j){
-                      break;
-                    }
-                }
-            }
-            break;
-          }
-          variance /= count;
-          /* Return the mean and variance as an object */
-          return {
-              mean: {r: meanR, g: meanG, b: meanB},
-              variance: variance,
-              count: count
-          };
+            return result;
         }
 
         for (var y = 0; y < inputData.height; y++) {
             for (var x = 0; x < inputData.width; x++) {
                 /* Find the statistics of the four sub-regions */
                 var regionA, regionB, regionC, regionD;
+                var sectorArray;
                 if(type == "original"){
                   regionA = regionStat(x - 1 - order, y - 1 - order);
                   regionB = regionStat(x + 1 + order, y - 1 - order);
@@ -382,42 +292,53 @@
                 } else if(type == "hexagon"){
 
                 } else if(type == "circle"){
-                  regionA = circleRegionStat(x - 1 - order, y - 1 - order, 2);
-                  regionB = circleRegionStat(x + 1 + order, y - 1 - order, 1);
-                  regionC = circleRegionStat(x - 1 - order, y + 1 + order, 3);
-                  regionD = circleRegionStat(x + 1 + order, y + 1 + order, 4);
+                  sectorArray = circleFilterRegionStat(x, y);
                 } else if(type == "sector"){
-                  
+
                 }
 
-                /* Get the minimum variance value */
-                var minV = Math.min(regionA.variance, regionB.variance,
-                                    regionC.variance, regionD.variance);
-
-                var i = (x + y * inputData.width) * 4;
-
+                var minV;
                 /* Put the mean colour of the region with the minimum
                    variance in the pixel */
-                switch (minV) {
-                case regionA.variance:
-                    outputData.data[i]     = regionA.mean.r;
-                    outputData.data[i + 1] = regionA.mean.g;
-                    outputData.data[i + 2] = regionA.mean.b;
-                    break;
-                case regionB.variance:
-                    outputData.data[i]     = regionB.mean.r;
-                    outputData.data[i + 1] = regionB.mean.g;
-                    outputData.data[i + 2] = regionB.mean.b;
-                    break;
-                case regionC.variance:
-                    outputData.data[i]     = regionC.mean.r;
-                    outputData.data[i + 1] = regionC.mean.g;
-                    outputData.data[i + 2] = regionC.mean.b;
-                    break;
-                case regionD.variance:
-                    outputData.data[i]     = regionD.mean.r;
-                    outputData.data[i + 1] = regionD.mean.g;
-                    outputData.data[i + 2] = regionD.mean.b;
+                if(type == "circle"){
+                  minV = Math.min.apply(null, sectorArray.map(function(a){ return a.variance; }));
+
+                  var i = (x + y * inputData.width) * 4;
+
+                  var targetMean;
+
+                  sectorArray.forEach(function(a){if (a.variance == minV) targetMean = a;});
+
+                  outputData.data[i]     = targetMean.mean.r;
+                  outputData.data[i + 1] = targetMean.mean.g;
+                  outputData.data[i + 2] = targetMean.mean.b;
+                } else{
+                  /* Get the minimum variance value */
+                  minV = Math.min(regionA.variance, regionB.variance,
+                                      regionC.variance, regionD.variance);
+
+                  var i = (x + y * inputData.width) * 4;
+                  switch (minV) {
+                  case regionA.variance:
+                      outputData.data[i]     = regionA.mean.r;
+                      outputData.data[i + 1] = regionA.mean.g;
+                      outputData.data[i + 2] = regionA.mean.b;
+                      break;
+                  case regionB.variance:
+                      outputData.data[i]     = regionB.mean.r;
+                      outputData.data[i + 1] = regionB.mean.g;
+                      outputData.data[i + 2] = regionB.mean.b;
+                      break;
+                  case regionC.variance:
+                      outputData.data[i]     = regionC.mean.r;
+                      outputData.data[i + 1] = regionC.mean.g;
+                      outputData.data[i + 2] = regionC.mean.b;
+                      break;
+                  case regionD.variance:
+                      outputData.data[i]     = regionD.mean.r;
+                      outputData.data[i + 1] = regionD.mean.g;
+                      outputData.data[i + 2] = regionD.mean.b;
+                  }
                 }
             }
         }

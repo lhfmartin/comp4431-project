@@ -24,9 +24,15 @@
     <script>
       function adaptive(str){
         if(str == "adaptive"){
-          document.getElementById("kuwahara-slider").style.visibility = "hidden";
+          document.getElementById("kuwahara-slider").style.display = "none";
         } else{
-          document.getElementById("kuwahara-slider").style.visibility = "visible";
+          document.getElementById("kuwahara-slider").style.display = "inline";
+        }
+        if(str == "circle"){
+          document.getElementById("kuwahara-sector").style.display = "inline";
+          document.getElementById("kuwahara-slider").style.display = "none";
+        } else{
+          document.getElementById("kuwahara-sector").style.display = "none";
         }
       }
     </script>
@@ -260,7 +266,6 @@
                                     <option value="adaptive">Adaptive</option>
                                     <option value="hexagon">Hexagon (todo)</option>
                                     <option value="circle">Circle</option>
-                                    <option value="sector">Circular Sector (todo)</option>
                                 </select>
                             </div>
                             <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3" id="kuwahara-slider">
@@ -274,6 +279,14 @@
                                         <span>5&times;5</span>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3" id="kuwahara-sector" style="display: none;">
+                                <label for="kuwahara-sector-size">Sector size:</label>
+                                <select class="form-control" id="kuwahara-sector-size">
+                                    <option value="4">4</option>
+                                    <option value="6">6</option>
+                                    <option value="8">8</option>
+                                </select>
                             </div>
                         </div>
                         <br>
