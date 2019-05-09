@@ -39,6 +39,13 @@
         } else{
           document.getElementById("kuwahara-sector").style.display = "none";
         }
+        if(str == "hexagon"){
+          document.getElementById("kuwahara-hex").style.display = "inline";
+          document.getElementById("kuwahara-slider").style.display = "none";
+        } else{
+          document.getElementById("kuwahara-hex").style.display = "none";
+          document.getElementById("kuwahara-slider").style.display = "inline";
+        }
       }
 
       let amin = 2, amax = 8;
@@ -289,7 +296,7 @@
                                 <select class="form-control" id="kuwahara-filter-type" onchange="adaptive(this.value)">
                                     <option value="original">Original</option>
                                     <option value="adaptive">Adaptive</option>
-                                    <option value="hexagon">Hexagon (todo)</option>
+                                    <option value="hexagon">Hexagon</option>
                                     <option value="circle">Circle</option>
                                 </select>
                             </div>
@@ -311,6 +318,16 @@
                                          onchange="$(this).parent().next().html($(this).val() + '&times;' + $(this).val()); updateAdaptiveSize(this.value)">
                                     </div>
                                     <span>8&times;8</span>
+                                </div>
+                            </div>
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3" id="kuwahara-hex" style="display: none;">
+                                <label for="kuwahara-hexl">Side length of hexagon:</label>
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <input class="form-control-range" id="kuwahara-hexl" type="range" value="3" min="3" max="15" step="2"
+                                         onchange="$(this).parent().next().html($(this).val())">
+                                    </div>
+                                    <span>3</span>
                                 </div>
                             </div>
                             <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3" id="kuwahara-slider">

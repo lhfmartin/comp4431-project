@@ -276,6 +276,257 @@
             return result;
         }
 
+        var hexWidth = Number(document.getElementById("kuwahara-hexl").value) * 2;
+
+        function hexRegionStat1(x, y) {
+          var meanR = 0, meanG = 0, meanB = 0;
+          var meanValue = 0;
+
+          let count = 0;
+
+          for (var j = 0; j > -hexWidth; j--) {
+              for (var i = 0; i < hexWidth; i++) {
+                  if(i >= hexWidth / 2 && -j < hexWidth / 2 && -j <= i - hexWidth / 2){
+                    break
+                  }
+                  if(i < hexWidth / 2 && -j >= hexWidth / 2 && -j >= i + hexWidth / 2){
+                    continue
+                  }
+                  ++count
+
+                  var pixel = imageproc.getPixel(inputData, x + i, y + j);
+                  /* For the mean colour */
+                  meanR += pixel.r;
+                  meanG += pixel.g;
+                  meanB += pixel.b;
+
+                  /* For the mean brightness */
+                  meanValue += (pixel.r + pixel.g + pixel.b) / 3;
+              }
+          }
+          meanR /= count;
+          meanG /= count;
+          meanB /= count;
+          meanValue /= count;
+
+          /* Find the variance */
+          var variance = 0;
+          for (var j = 0; j > -hexWidth; j--) {
+              for (var i = 0; i < hexWidth; i++) {
+                  if(i >= hexWidth / 2 && -j < hexWidth / 2 && -j <= i - hexWidth / 2){
+                    break
+                  }
+                  if(i < hexWidth / 2 && -j >= hexWidth / 2 && -j >= i + hexWidth / 2){
+                    continue
+                  }
+
+                  var pixel = imageproc.getPixel(inputData, x + i, y + j);
+                  var value = (pixel.r + pixel.g + pixel.b) / 3;
+
+                  variance += Math.pow(value - meanValue, 2);
+              }
+          }
+
+          variance /= count;
+          /* Return the mean and variance as an object */
+          return {
+              mean: {r: meanR, g: meanG, b: meanB},
+              variance: variance
+          };
+        }
+
+        function hexRegionStat3(x, y) {
+          var meanR = 0, meanG = 0, meanB = 0;
+          var meanValue = 0;
+
+          let count = 0;
+
+          for (var j = 0; j > -hexWidth; j--) {
+              for (var i = 0; i > -hexWidth; i--) {
+                if(-i < hexWidth / 2 && -j >= hexWidth / 2 && -j >= -i + hexWidth / 2){
+                  continue
+                }
+                if(-i >= hexWidth / 2 && -j < hexWidth / 2 && -j <= -i - hexWidth / 2){
+                  break;
+                }
+                ++count
+                  var pixel = imageproc.getPixel(inputData, x + i, y + j);
+
+                  /* For the mean colour */
+                  meanR += pixel.r;
+                  meanG += pixel.g;
+                  meanB += pixel.b;
+
+                  /* For the mean brightness */
+                  meanValue += (pixel.r + pixel.g + pixel.b) / 3;
+              }
+          }
+          meanR /= count;
+          meanG /= count;
+          meanB /= count;
+          meanValue /= count;
+          /* Find the variance */
+          var variance = 0;
+          for (var j = 0; j > -hexWidth; j--) {
+              for (var i = 0; i > -hexWidth; i--) {
+                if(-i < hexWidth / 2 && -j >= hexWidth / 2 && -j >= -i + hexWidth / 2){
+                  continue
+                }
+                if(-i >= hexWidth / 2 && -j < hexWidth / 2 && -j <= -i - hexWidth / 2){
+                  break;
+                }
+                var pixel = imageproc.getPixel(inputData, x + i, y + j);
+                var value = (pixel.r + pixel.g + pixel.b) / 3;
+
+                variance += Math.pow(value - meanValue, 2);
+              }
+          }
+
+
+          variance /= count;
+          /* Return the mean and variance as an object */
+          return {
+              mean: {r: meanR, g: meanG, b: meanB},
+              variance: variance
+          };
+        }
+var b = false
+        function hexRegionStat5(x, y) {
+          var meanR = 0, meanG = 0, meanB = 0;
+          var meanValue = 0;
+
+          let count = 0;
+
+          for (var j = 0; j < hexWidth; j++) {
+              for (var i = 0; i > -hexWidth; i--) {
+                if(-i < hexWidth / 2 && j >= hexWidth / 2 && j >= -i + hexWidth / 2){
+                  continue
+                }
+                if(-i >= hexWidth / 2 && j < hexWidth / 2 && j <= -i - hexWidth / 2){
+                  break
+                }
+                ++count
+                  var pixel = imageproc.getPixel(inputData, x + i, y + j);
+
+                  /* For the mean colour */
+                  meanR += pixel.r;
+                  meanG += pixel.g;
+                  meanB += pixel.b;
+
+                  /* For the mean brightness */
+                  meanValue += (pixel.r + pixel.g + pixel.b) / 3;
+              }
+          }
+          meanR /= count;
+          meanG /= count;
+          meanB /= count;
+          meanValue /= count;
+
+          /* Find the variance */
+          var variance = 0;
+          for (var j = 0; j < hexWidth; j++) {
+              for (var i = 0; i > -hexWidth; i--) {
+                if(-i < hexWidth / 2 && j >= hexWidth / 2 && j >= -i + hexWidth / 2){
+                  continue
+                }
+                if(-i >= hexWidth / 2 && j < hexWidth / 2 && j <= -i - hexWidth / 2){
+                  break
+                }
+                var pixel = imageproc.getPixel(inputData, x + i, y + j);
+                var value = (pixel.r + pixel.g + pixel.b) / 3;
+
+                variance += Math.pow(value - meanValue, 2);
+              }
+          }
+
+
+          variance /= count;
+          /* Return the mean and variance as an object */
+          return {
+              mean: {r: meanR, g: meanG, b: meanB},
+              variance: variance
+          };
+        }
+
+        function hexRegionStat7(x, y) {
+          var meanR = 0, meanG = 0, meanB = 0;
+          var meanValue = 0;
+
+          let count = 0;
+
+          for (var j = 0; j < hexWidth; j++) {
+              for (var i = 0; i < hexWidth; i++) {
+                if(i >= hexWidth / 2 && j < hexWidth / 2 && j <= i - hexWidth / 2){
+                  break
+                }
+                if(i < hexWidth / 2 && j >= hexWidth / 2 && j >= i + hexWidth / 2){
+                  continue
+                }
+                ++count
+                  var pixel = imageproc.getPixel(inputData, x + i, y + j);
+
+                  /* For the mean colour */
+                  meanR += pixel.r;
+                  meanG += pixel.g;
+                  meanB += pixel.b;
+
+                  /* For the mean brightness */
+                  meanValue += (pixel.r + pixel.g + pixel.b) / 3;
+              }
+          }
+
+          meanR /= count;
+          meanG /= count;
+          meanB /= count;
+          meanValue /= count;
+
+          /* Find the variance */
+          var variance = 0;
+          for (var j = 0; j < hexWidth; j++) {
+              for (var i = 0; i < hexWidth; i++) {
+                if(i >= hexWidth / 2 && j < hexWidth / 2 && j <= i - hexWidth / 2){
+                  break
+                }
+                if(i < hexWidth / 2 && j >= hexWidth / 2 && j >= i + hexWidth / 2){
+                  continue
+                }
+                var pixel = imageproc.getPixel(inputData, x + i, y + j);
+                var value = (pixel.r + pixel.g + pixel.b) / 3;
+
+                variance += Math.pow(value - meanValue, 2);
+              }
+          }
+
+
+          variance /= count;
+          /* Return the mean and variance as an object */
+          return {
+              mean: {r: meanR, g: meanG, b: meanB},
+              variance: variance
+          };
+        }
+
+        function hexRegionStat(x, y, q){
+          switch(q){
+            case 1:
+              return hexRegionStat1(x, y)
+            case 1.5:
+              return hexRegionStat2(x, y)
+            case 2:
+              return hexRegionStat3(x, y)
+            case 2.5:
+              return hexRegionStat4(x, y)
+            case 3:
+              return hexRegionStat5(x, y)
+            case 3.5:
+              return hexRegionStat6(x, y)
+            case 4:
+              return hexRegionStat7(x, y)
+            case 4.5:
+              return hexRegionStat8(x, y)
+          }
+        }
+
         for (var y = 0; y < inputData.height; y++) {
             for (var x = 0; x < inputData.width; x++) {
                 /* Find the statistics of the four sub-regions */
@@ -292,7 +543,10 @@
                   regionC = adaptiveRegionStat(x, y, 3);
                   regionD = adaptiveRegionStat(x, y, 4);
                 } else if(type == "hexagon"){
-
+                  regionA = hexRegionStat(x, y, 2);
+                  regionB = hexRegionStat(x, y, 1);
+                  regionC = hexRegionStat(x, y, 3);
+                  regionD = hexRegionStat(x, y, 4);
                 } else if(type == "circle"){
                   sectorArray = circleFilterRegionStat(x, y);
                 } else if(type == "sector"){
