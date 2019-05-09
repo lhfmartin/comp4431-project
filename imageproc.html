@@ -25,14 +25,40 @@
       function adaptive(str){
         if(str == "adaptive"){
           document.getElementById("kuwahara-slider").style.display = "none";
+          document.getElementById("kuwahara-adaptive-min").style.display = "inline";
+          document.getElementById("kuwahara-adaptive-max").style.display = "inline";
+          document.getElementById("ksize").style.display = "inline";
         } else{
           document.getElementById("kuwahara-slider").style.display = "inline";
+          document.getElementById("kuwahara-adaptive-min").style.display = "none";
+          document.getElementById("kuwahara-adaptive-max").style.display = "none";
+          document.getElementById("ksize").style.display = "none";
         }
         if(str == "circle"){
           document.getElementById("kuwahara-sector").style.display = "inline";
         } else{
           document.getElementById("kuwahara-sector").style.display = "none";
         }
+      }
+
+      let amin = 2, amax = 8;
+
+      function updateAdaptiveSize(size){
+        size = Number(size)
+        if(size <= 7){
+          amin = size;
+
+        } else{
+          amax = size;
+        }
+        let str = "Each region will be tested with the following sizes:<br />"
+        for(let i = amin; i <= amax; i++){
+          str += i + "&times;" + i
+          if(i < amax){
+            str += ", "
+          }
+        }
+        document.getElementById("ksize").innerHTML = str
       }
     </script>
 </head>
@@ -267,6 +293,26 @@
                                     <option value="circle">Circle</option>
                                 </select>
                             </div>
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3" id="kuwahara-adaptive-min" style="display: none;">
+                                <label for="kuwahara-amin">Minimum region size:</label>
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <input class="form-control-range" id="kuwahara-amin" type="range" value="2" min="2" max="7" step="1"
+                                         onchange="$(this).parent().next().html($(this).val() + '&times;' + $(this).val()); updateAdaptiveSize(this.value)">
+                                    </div>
+                                    <span>2&times;2</span>
+                                </div>
+                            </div>
+                            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3" id="kuwahara-adaptive-max" style="display: none;">
+                                <label for="kuwahara-amax">Maximum region size size:</label>
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <input class="form-control-range" id="kuwahara-amax" type="range" value="8" min="8" max="13" step="1"
+                                         onchange="$(this).parent().next().html($(this).val() + '&times;' + $(this).val()); updateAdaptiveSize(this.value)">
+                                    </div>
+                                    <span>8&times;8</span>
+                                </div>
+                            </div>
                             <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3" id="kuwahara-slider">
                                 <label for="kuwahara-filter-size">Filter size:</label>
                                 <div class="form-inline">
@@ -288,7 +334,13 @@
                                 </select>
                             </div>
                         </div>
+
                         <br>
+                        <div class="row">
+                          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" id="ksize" style="display: none">
+                            Each region will be tested with the following sizes:<br />2×2, 3×3, 4×4, 5×5, 6×6, 7×7, 8×8
+                          </div>
+                        </div>
                     </div>
 
                     <!-- Ordered dithering -->
@@ -346,7 +398,7 @@
                                     <div class="form-group">
                                         <div class="input-group">
                                             <input class="form-control-range" id="sobel-blur-kernel-size" type="range" value="3" min="3" max="9" step="2"
-                                             onchange="$(this).parent().next().html($(this).val() + '&times;' + $(this).val())">
+                                             onchange="$(this).parent().next().html($(this).val() + '&times;' + $(this).val());">
                                         </div>
                                         <span>3&times;3</span>
                                     </div>
