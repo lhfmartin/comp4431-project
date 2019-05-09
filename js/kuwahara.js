@@ -180,7 +180,9 @@
 
         function adaptiveRegionStat(x, y, q){
           var data = [];
-          for (var i = 2; i < 8; i++){
+          var amin = Number(document.getElementById("kuwahara-amin").value);
+          var amax = Number(document.getElementById("kuwahara-amax").value);
+          for (var i = amin; i < amax; i++){
             data.push(regionStat2(x, y, q, i));
           }
           var minV = data[0].variance;
