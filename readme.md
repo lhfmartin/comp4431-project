@@ -1,1 +1,1 @@
-Live Demo: https://lhfmartin.github.io/cs4431project/imageproc.html
+Live Demo: https://lhfmartin.github.io/comp4431-project/imageproc.html
